@@ -18,7 +18,73 @@
 		<GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
 		<GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
 		<ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+		
+		<!-- Performance and Bundle Size Optimizations -->
+		<PublishTrimmed>true</PublishTrimmed>
+		<TrimMode>link</TrimMode>
+		<TrimmerDefaultAction>link</TrimmerDefaultAction>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+		
+		<!-- ReadyToRun for faster startup -->
+		<PublishReadyToRun>true</PublishReadyToRun>
+		<ReadyToRunUseCrossgen2>true</ReadyToRunUseCrossgen2>
+		
+		<!-- Runtime optimizations -->
+		<TieredCompilation>true</TieredCompilation>
+		<TieredPGO>true</TieredPGO>
+		<InvariantGlobalization>false</InvariantGlobalization>
+		
+		<!-- Assembly optimization -->
+		<IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+		<IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+		<OptimizationPreference>Speed</OptimizationPreference>
+		
+		<!-- EventSource optimization -->
+		<EventSourceSupport>false</EventSourceSupport>
+		
+		<!-- Remove unused features -->
+		<EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+		<UseSystemResourceKeys>true</UseSystemResourceKeys>
+		
+		<!-- JIT optimizations -->
+		<DebuggerSupport>false</DebuggerSupport>
+		<EnableUnsafeUTF7Encoding>false</EnableUnsafeUTF7Encoding>
+		<HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+		<MetadataUpdaterSupport>false</MetadataUpdaterSupport>
 	</PropertyGroup>
+
+	<!-- Release-specific optimizations -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<Optimize>true</Optimize>
+		<DefineConstants>$(DefineConstants);RELEASE_OPTIMIZED</DefineConstants>
+		
+		<!-- More aggressive trimming in release -->
+		<TrimmerSingleWarn>false</TrimmerSingleWarn>
+		<TrimMode>full</TrimMode>
+		
+		<!-- Assembly linking optimization -->
+		<PublishSingleFile>true</PublishSingleFile>
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+		
+		<!-- Additional size optimizations -->
+		<PublishTrimmed>true</PublishTrimmed>
+		<TrimUnusedDependencies>true</TrimUnusedDependencies>
+		
+		<!-- IL Linker optimizations -->
+		<IlcTrimMetadata>true</IlcTrimMetadata>
+		<IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+	</PropertyGroup>
+
+	<!-- Debug-specific settings -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<!-- Disable aggressive optimizations for debugging -->
+		<PublishTrimmed>false</PublishTrimmed>
+		<PublishSingleFile>false</PublishSingleFile>
+		<PublishReadyToRun>false</PublishReadyToRun>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<Compile Include="..\AssemblyInfo.cs">
 			<LinkBase>Properties</LinkBase>

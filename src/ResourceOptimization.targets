@@ -1,0 +1,129 @@
+<Project>
+  <!-- Resource Optimization Targets -->
+  
+  <PropertyGroup>
+    <!-- Enable resource optimization in Release builds -->
+    <OptimizeResources Condition="'$(Configuration)' == 'Release'">true</OptimizeResources>
+    <CompressResources Condition="'$(Configuration)' == 'Release'">true</CompressResources>
+    <EnableLazyResourceLoading>true</EnableLazyResourceLoading>
+  </PropertyGroup>
+
+  <!-- Custom resource compression -->
+  <ItemGroup Condition="'$(CompressResources)' == 'true'">
+    <Content Update="**/*.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CompressionLevel>Optimal</CompressionLevel>
+    </Content>
+    <Content Update="**/*.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CompressionLevel>Optimal</CompressionLevel>
+    </Content>
+    <Content Update="**/*.svg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CompressionLevel>Optimal</CompressionLevel>
+    </Content>
+  </ItemGroup>
+
+  <!-- Optimize resource compilation -->
+  <ItemGroup>
+    <EmbeddedResource Update="**/*.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>%(Filename).Designer.cs</LastGenOutput>
+      <CustomToolNamespace>%(RootNamespace).Resources</CustomToolNamespace>
+      <!-- Enable string resource optimization -->
+      <ManifestResourceName>%(RootNamespace).Resources.%(Filename)</ManifestResourceName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- Resource bundling for better compression -->
+  <ItemGroup Condition="'$(OptimizeResources)' == 'true'">
+    <BundledResource Include="**/*.ico;**/*.png;**/*.jpg;**/*.svg">
+      <Pack>true</Pack>
+      <Compress>true</Compress>
+      <LazyLoad>true</LazyLoad>
+    </BundledResource>
+  </ItemGroup>
+
+  <!-- Conditional resource inclusion based on platform -->
+  <Choose>
+    <When Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+      <ItemGroup>
+        <EmbeddedResource Include="Resources\Windows\**\*" />
+        <EmbeddedResource Remove="Resources\Linux\**\*" />
+        <EmbeddedResource Remove="Resources\MacOS\**\*" />
+      </ItemGroup>
+    </When>
+    <When Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == ''">
+      <!-- Linux -->
+      <ItemGroup>
+        <EmbeddedResource Include="Resources\Linux\**\*" />
+        <EmbeddedResource Remove="Resources\Windows\**\*" />
+        <EmbeddedResource Remove="Resources\MacOS\**\*" />
+      </ItemGroup>
+    </When>
+    <When Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'macos'">
+      <ItemGroup>
+        <EmbeddedResource Include="Resources\MacOS\**\*" />
+        <EmbeddedResource Remove="Resources\Windows\**\*" />
+        <EmbeddedResource Remove="Resources\Linux\**\*" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <!-- Remove unnecessary localization resources -->
+  <ItemGroup Condition="'$(OptimizeResources)' == 'true'">
+    <!-- Keep only essential languages to reduce bundle size -->
+    <EmbeddedResource Remove="**\*.zh-TW.resx" />
+    <EmbeddedResource Remove="**\*.ja.resx" />
+    <EmbeddedResource Remove="**\*.ko.resx" />
+    <EmbeddedResource Remove="**\*.fr.resx" />
+    <EmbeddedResource Remove="**\*.de.resx" />
+    <EmbeddedResource Remove="**\*.es.resx" />
+    <EmbeddedResource Remove="**\*.ru.resx" />
+    <!-- Keep only English and Simplified Chinese -->
+    <EmbeddedResource Include="**\*.resx" />
+    <EmbeddedResource Include="**\*.zh-CN.resx" />
+  </ItemGroup>
+
+  <!-- Custom target for resource optimization -->
+  <Target Name="OptimizeEmbeddedResources" BeforeTargets="Build" Condition="'$(OptimizeResources)' == 'true'">
+    <Message Text="Optimizing embedded resources for reduced bundle size..." Importance="high" />
+    
+    <!-- Remove debug-only resources in release builds -->
+    <ItemGroup>
+      <EmbeddedResource Remove="**\*Debug*" />
+      <EmbeddedResource Remove="**\*Test*" />
+      <Content Remove="**\*Debug*" />
+      <Content Remove="**\*Test*" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Compress satellite assemblies -->
+  <Target Name="CompressSatelliteAssemblies" AfterTargets="Build" Condition="'$(CompressResources)' == 'true'">
+    <Message Text="Compressing satellite assemblies..." Importance="high" />
+    <ItemGroup>
+      <SatelliteAssembly Include="$(OutputPath)**\*.resources.dll" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Generate resource manifest for lazy loading -->
+  <Target Name="GenerateResourceManifest" BeforeTargets="Build" Condition="'$(EnableLazyResourceLoading)' == 'true'">
+    <Message Text="Generating resource manifest for lazy loading..." Importance="high" />
+    
+    <ItemGroup>
+      <ResourceManifestEntry Include="@(EmbeddedResource)">
+        <Size>$([System.IO.File]::Exists('%(FullPath)') ? $([System.IO.FileInfo]::new('%(FullPath)').Length) : 0)</Size>
+        <Priority>Normal</Priority>
+      </ResourceManifestEntry>
+    </ItemGroup>
+
+    <WriteLinesToFile 
+      File="$(OutputPath)ResourceManifest.txt" 
+      Lines="@(ResourceManifestEntry -> '%(Identity);%(Size);%(Priority)')" 
+      Overwrite="true" />
+  </Target>
+
+  <!-- Import this targets file in projects that need resource optimization -->
+  <Import Project="$(MSBuildThisFileDirectory)ResourceOptimization.targets" Condition="Exists('$(MSBuildThisFileDirectory)ResourceOptimization.targets')" />
+  
+</Project>
