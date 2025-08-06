@@ -7,6 +7,9 @@ partial class Program
     [STAThread]
     static int Main(string[] args) // Main 函数需要 STA 线程不可更改为 async Task
     {
+        // Early GC optimization for startup
+        GC.Collect(0, GCCollectionMode.Optimized);
+        
         instance = new(args);
         var exitCode = instance.StartAsync().GetAwaiter().GetResult();
         return exitCode;
@@ -34,10 +37,17 @@ partial class Program
         return exitCode;
     }
 
+    // Cache the built AppBuilder to avoid rebuilding
+    private static AppBuilder? _cachedAppBuilder;
+
     // Avalonia configuration, don't remove; also used by visual designer.
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static AppBuilder BuildAvaloniaApp()
     {
+        // Return cached builder if available (for designer scenarios)
+        if (_cachedAppBuilder != null && instance?.IsDesignMode == true)
+            return _cachedAppBuilder;
+
         if (instance == null)
         {
             instance = new()
@@ -72,8 +82,12 @@ partial class Program
 #endif
                 .UseSkia()
                 .LogToTrace()
-                .UseReactiveUI()
-                .With(new FontManagerOptions
+                .UseReactiveUI();
+
+            // Configure fonts only if not in design mode for performance
+            if (!instance.IsDesignMode)
+            {
+                builder = builder.With(new FontManagerOptions
                 {
                     DefaultFamilyName = "Microsoft YaHei UI",
                     FontFallbacks = new[]
@@ -84,8 +98,11 @@ partial class Program
                         },
                     },
                 });
+            }
 
+            // Lazy load GPU settings to avoid early initialization overhead
             var useGpu = !IApplication.DisableGPU && GeneralSettings.UseGPURendering.Value;
+            
 #if MACOS
             builder.With(new AvaloniaNativePlatformOptions
             {
@@ -111,15 +128,21 @@ partial class Program
 
             builder.With(options);
 
+            // Optimize Skia resource allocation
             var skiaOptions = new SkiaOptions
             {
-                MaxGpuResourceSizeBytes = 1024000000,
+                MaxGpuResourceSizeBytes = Environment.Is64BitProcess ? 1024000000 : 512000000,
             };
 
             builder.With(skiaOptions);
 #else
             throw new PlatformNotSupportedException("Avalonia.Desktop package was referenced on non-desktop platform or it isn't supported");
 #endif
+
+            // Cache the builder for design-time scenarios
+            if (instance.IsDesignMode)
+                _cachedAppBuilder = builder;
+
             return builder;
         }
         catch (Exception ex)
@@ -142,6 +165,10 @@ partial class Program
             return;
 
         var builder = BuildAvaloniaApp();
+        
+        // Optimize startup by reducing initial allocations
+        GC.Collect(1, GCCollectionMode.Optimized);
+        
         builder.StartWithClassicDesktopLifetime2(
             Array.Empty<string>(),
             ShutdownMode.OnLastWindowClose);

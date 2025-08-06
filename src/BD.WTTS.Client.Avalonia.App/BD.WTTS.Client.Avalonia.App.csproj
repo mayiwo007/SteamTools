@@ -31,6 +31,22 @@
 		<DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>
 
+	<!-- Include optimization files -->
+	<ItemGroup>
+		<Compile Include="..\OptimizedServiceExtensions.cs">
+			<LinkBase>Performance</LinkBase>
+		</Compile>
+		<Compile Include="..\LazyResourceLoader.cs">
+			<LinkBase>Resources</LinkBase>
+		</Compile>
+	</ItemGroup>
+
+	<!-- Include IL Linker configuration -->
+	<ItemGroup>
+		<TrimmerRootDescriptor Include="..\ILLink.Substitutions.xml" />
+		<LinkAttributes Include="..\ILLink.LinkAttributes.xml" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<Compile Include="..\ImplicitUsings.MessagePack.cs">
 			<LinkBase>Properties</LinkBase>
@@ -91,6 +107,9 @@
 	</ItemGroup>
 
 	<Import Project="..\TFM_NET7_WITH_DESKTOP.props" />
+	
+	<!-- Import resource optimization targets -->
+	<Import Project="..\ResourceOptimization.targets" Condition="Exists('..\ResourceOptimization.targets')" />
 
 </Project>
 

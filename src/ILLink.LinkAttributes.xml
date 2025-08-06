@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linker>
+  <!-- Mark Avalonia types as trim-compatible -->
+  <assembly fullname="Avalonia.Controls" feature="System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault" featurevalue="false">
+    <type fullname="Avalonia.Controls.*">
+      <attribute fullname="System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute">
+        <argument>PublicMethods</argument>
+      </attribute>
+    </type>
+  </assembly>
+
+  <!-- Mark ViewModels as trim-safe -->
+  <assembly fullname="BD.WTTS.Client">
+    <type fullname="BD.WTTS.UI.ViewModels.*">
+      <attribute fullname="System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute">
+        <argument>ViewModels use reflection for data binding</argument>
+      </attribute>
+    </type>
+  </assembly>
+
+  <!-- Mark plugin types as requiring dynamic access -->
+  <assembly fullname="BD.WTTS.Client.Plugins.*">
+    <type fullname="*">
+      <attribute fullname="System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute">
+        <argument>All</argument>
+      </attribute>
+    </type>
+  </assembly>
+
+  <!-- Mark AutoMapper configurations -->
+  <assembly fullname="BD.WTTS.Client">
+    <type fullname="BD.WTTS.Mappers.*">
+      <attribute fullname="System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute">
+        <argument>AutoMapper uses reflection for mapping</argument>
+      </attribute>
+    </type>
+  </assembly>
+
+  <!-- Mark serialization types -->
+  <assembly fullname="BD.WTTS.Client">
+    <type fullname="BD.WTTS.Models.*">
+      <attribute fullname="System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute">
+        <argument>PublicProperties</argument>
+      </attribute>
+    </type>
+  </assembly>
+</linker>

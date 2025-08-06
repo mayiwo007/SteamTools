@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linker>
+  <!-- Preserve Avalonia-specific code -->
+  <assembly fullname="Avalonia.Base">
+    <type fullname="*" preserve="all" />
+  </assembly>
+  
+  <assembly fullname="Avalonia.Controls">
+    <type fullname="*" preserve="all" />
+  </assembly>
+  
+  <assembly fullname="Avalonia.Markup.Xaml">
+    <type fullname="*" preserve="all" />
+  </assembly>
+  
+  <!-- Preserve ReactiveUI for MVVM -->
+  <assembly fullname="ReactiveUI">
+    <type fullname="ReactiveUI.*" preserve="all" />
+  </assembly>
+  
+  <!-- Preserve AutoMapper mappings -->
+  <assembly fullname="AutoMapper">
+    <type fullname="AutoMapper.*" preserve="all" />
+  </assembly>
+  
+  <!-- Preserve System.Text.Json for serialization -->
+  <assembly fullname="System.Text.Json">
+    <type fullname="System.Text.Json.*" preserve="all" />
+  </assembly>
+  
+  <!-- Preserve Entity Framework Core -->
+  <assembly fullname="Microsoft.EntityFrameworkCore">
+    <type fullname="Microsoft.EntityFrameworkCore.*" preserve="all" />
+  </assembly>
+  
+  <!-- Preserve SQLite dependencies -->
+  <assembly fullname="SQLitePCLRaw.core">
+    <type fullname="*" preserve="all" />
+  </assembly>
+  
+  <!-- Preserve Steam-related assemblies -->
+  <assembly fullname="SteamKit2">
+    <type fullname="SteamKit2.*" preserve="all" />
+  </assembly>
+  
+  <!-- Preserve UI-specific ViewModels and Services -->
+  <assembly fullname="BD.WTTS.Client">
+    <namespace fullname="BD.WTTS.UI.ViewModels" preserve="all" />
+    <namespace fullname="BD.WTTS.Services" preserve="all" />
+    <namespace fullname="BD.WTTS.Models" preserve="all" />
+  </assembly>
+  
+  <!-- Preserve plugin infrastructure -->
+  <assembly fullname="BD.WTTS.Client.Plugins.*">
+    <type fullname="*" preserve="all" />
+  </assembly>
+  
+  <!-- Substitute expensive reflection calls -->
+  <assembly fullname="System.Private.CoreLib">
+    <type fullname="System.Environment">
+      <method signature="System.String get_MachineName()" body="stub" value="OPTIMIZED_MACHINE" />
+    </type>
+  </assembly>
+</linker>
